@@ -22,96 +22,69 @@ Ever want to just apply a model to a bunch of files?  Now you can!
 ```
 """
 import os, sys, json, jinja2
-from pprint import pprint
+from utils57 import *
 
 verbose=os.environ.get('VERBOSE')
-
-def load_models(modname):
-    if verbose: print ">> import models ( __import__('%s') )" % modname
-    return dict((k,v) for k,v
-                in __import__(modname).__dict__.iteritems()
-                if not k.startswith('__'))
-
-class obj(object):
-    def __init__(_,**kw): [ setattr(_,k,v) for k,v in kw.iteritems() ]
-    def _iterkeys (_):return( x for x in dir(_) if not x.startswith('_') )
-    def _iteritems(_):return((x,getattr(_,x))for x in _._iterkeys())
-    def _keys(_): return list(_._iterkeys())
-    def __repr__(_):return str(dict(_._iteritems()))
-    def __str__ (_):return str(_._keys())
-    pass
-
-class objt(obj):
-    def _template(_): return jinja2.Template(_.contents)
-    def _render(_):   return _._template().render(**_.models)
-    pass
-
-def mmkdir(*a):
-    if verbose: print ">> mmkdir", (os.path.join(*a))
-    try: os.mkdir(os.path.join(*a))
-    except: pass
-    pass
-
-def dump(str,f):
-    f=open(os.path.join(*f),'w+')
-    f.write(str)
-    f.close()
-    return str
 
 def good(x):
     if '/.ve' in x:        return
     if x.endswith('~'):    return
     return True
 
-def generate(
-    outputdir='output',
-    inputdirs='content'.split(),
-    includedirs='include'.split(),
-    staticdirs='static'.split(),
-    models=load_models('models'),
-    ):
-    mmkdir(outputdir)
-    for indirname in inputdirs:
-        mmkdir(outputdir,indirname)
-        for prefix,dirs,files in os.walk(indirname):
-            for dname in dirs:
-                mmkdir(outputdir,prefix,dname)
-                pass
-            for fname in files:
-                fullname = os.path.join(prefix,fname)
-                fulloutput = os.path.join('output',fullname)
-                if good(fullname):
-                    if verbose: print ">> START ", '-'*40, fullname
-                    contents=open(fullname).read()
-                    output = objt(fname=fullname,
-                              models=models,
-                              contents=contents,
-                              )._render()
-                    if verbose:
-                        print '>>', repr(output)
-                        pass
-                    try: os.unlink(fulloutput)
-                    except: pass
-                    dump(output,('output',fullname))
-                    if verbose: print ">> FINISH", '-'*40, fullname
-                    pass
+def xwalk1(src_dir, dst_dir, func, good=good):
+    for orig_prefix,dirs,files in os.walk(src_dir):
+        prefix = orig_prefix[len(src_dir)+1:]
+        for dname in dirs:
+            out_name = os.path.join( dst_dir, prefix, dname )
+            if verbose: print ">> mkdir", out_name
+            force( lambda: os.makedirs(out_name) )
+            pass
+        for fname in files:
+            inp_name = os.path.join( src_dir, prefix, fname )
+            out_name = os.path.join( dst_dir, prefix, fname )
+            if good(inp_name):
+                func(inp_name,out_name)
                 pass
             pass
         pass
-    for indirname in staticdirs:
-        mmkdir(outputdir,indirname)
-        for prefix,dirs,files in os.walk(indirname):
-            for dname in dirs:
-                mmkdir(outputdir,prefix,dname)
-                pass
-            for fname in files:
-                fullname = os.path.join(prefix,fname)
-                fulloutput = os.path.join('output',fullname)
-                if good(fullname):
-                    if verbose: print ">> LINK ", '-'*40, fullname
-                    try: os.unlink(fulloutput)
-                    except: pass
-                    try: os.link(fullname,fulloutput)
-                    except: pass
+    pass
+
+def xwalkN(src_dirs, dst_dir, func, good=good):
+    for src_dir in src_dirs.split(','):
+        xwalk1(src_dir, dst_dir, func, good)
+    pass
+
+##
+def load_models(modname):
+    if verbose: print ">> import models ( __import__('%s') )" % modname
+    return dict((k,v) for k,v
+                in __import__(modname).__dict__.iteritems()
+                if not k.startswith('__'))
+
+def gen_file(fullname,fulloutput,models=load_models('models')):
+    if verbose: print ">> GF", fullname,'|'
+    contents=load(fullname)
+    output = objt(fname=fullname,
+                  models=models,
+                  contents=contents,
+    )._render()
+    if verbose: print output,'\n<<','-'*60
+    force(lambda:os.unlink(fulloutput))
+    return dump(fulloutput,output)
+
+def copy_file(fullname,fulloutput,models=load_models('models')):
+    if verbose: print ">> CF", fullname
+    force(lambda:os.unlink(fulloutput))
+    return os.link(fullname,fulloutput)
+
+def generate(outdir='output',
+             indirs='content,content2',
+             statics='static,static2',
+             includes='include,include2',
+):
+    xwalkN(indirs,  outdir, gen_file)
+    xwalkN(statics, outdir, copy_file)
+    includes = includes.split(',')
+    pass
 
 if __name__=='__main__': generate()
