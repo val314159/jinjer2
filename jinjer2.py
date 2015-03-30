@@ -67,6 +67,7 @@ def generate(
     outputdir='output',
     inputdirs='content'.split(),
     includedirs='include'.split(),
+    staticdirs='static'.split(),
     models=load_models('models'),
     ):
     mmkdir(outputdir)
@@ -78,6 +79,7 @@ def generate(
                 pass
             for fname in files:
                 fullname = os.path.join(prefix,fname)
+                fulloutput = os.path.join('output',fullname)
                 if good(fullname):
                     if verbose: print ">> START ", '-'*40, fullname
                     contents=open(fullname).read()
@@ -88,7 +90,28 @@ def generate(
                     if verbose:
                         print '>>', repr(output)
                         pass
+                    try: os.unlink(fulloutput)
+                    except: pass
                     dump(output,('output',fullname))
                     if verbose: print ">> FINISH", '-'*40, fullname
+                    pass
+                pass
+            pass
+        pass
+    for indirname in staticdirs:
+        mmkdir(outputdir,indirname)
+        for prefix,dirs,files in os.walk(indirname):
+            for dname in dirs:
+                mmkdir(outputdir,prefix,dname)
+                pass
+            for fname in files:
+                fullname = os.path.join(prefix,fname)
+                fulloutput = os.path.join('output',fullname)
+                if good(fullname):
+                    if verbose: print ">> LINK ", '-'*40, fullname
+                    try: os.unlink(fulloutput)
+                    except: pass
+                    try: os.link(fullname,fulloutput)
+                    except: pass
 
 if __name__=='__main__': generate()
