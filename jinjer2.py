@@ -144,4 +144,17 @@ def generate(outdir='output',
     includes = includes.split(',')
     pass
 
-if __name__=='__main__': generate()
+def parse_args():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i','--input',  dest='inputdir', default='content',
+                        help='directory for source input')
+    parser.add_argument('-o','--output', dest='outputdir',default='output',
+                        help='directory for generated output')
+    parser.add_argument('-r','--recurse',action='store_true',
+                        help='whether to recurse')
+    parser.add_argument('-v','--verbose',action='store_true',
+                        help='increase output verbosity')
+    return parser.parse_args()
+
+if __name__=='__main__':options=parse_args();generate()
