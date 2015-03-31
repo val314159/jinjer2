@@ -7,12 +7,8 @@ Ever want to just apply a model to a bunch of files?  Now you can!
 ### Usage:
 
 ```sh
-  export VERBOSE=1 # to turn on verbosity
-```
-
-```sh
   # command line usage
-  python -mjinger2
+  jinger2
 ```
 
 ```python
@@ -64,8 +60,6 @@ class objt(obj):
     pass
 ##
 ##
-verbose=os.environ.get('VERBOSE')
-
 def good(x):
     if '/.ve' in x:        return
     if x.endswith('~'):    return
@@ -76,7 +70,7 @@ def xwalk1(src_dir, dst_dir, func, good=good):
         prefix = orig_prefix[len(src_dir)+1:]
         for dname in dirs:
             out_name = os.path.join( dst_dir, prefix, dname )
-            if verbose: print ">> mkdir", out_name
+            if options.verbose: print ">> mkdir", out_name
             force( lambda: os.makedirs(out_name) )
             pass
         for fname in files:
@@ -95,7 +89,7 @@ def xwalkN(src_dirs, *a, **kw):
     pass
 ##
 def copy_file(fullname,fulloutput,models):
-    if verbose: print ">> CF", fullname
+    if options.verbose: print ">> CF", fullname
     force(lambda:os.unlink(fulloutput))
     return os.link(fullname,fulloutput)
 
@@ -121,40 +115,43 @@ def load_models(filename):
            yload_models(filename))
 
 def gen_file(fullname,fulloutput):
-    if verbose: print ">> GF", fullname,'|'
+    if options.verbose: print ">> GF", fullname,'|'
     contents=load(fullname)
     output = objt(fname=fullname,
                   models=models,
                   contents=contents,
                   )._render()
-    if verbose: print output,'\n<<','-'*60
+    if options.verbose: print output,'\n<<','-'*60
     force(lambda:os.unlink(fulloutput))
     return dump(fulloutput,output)
-
-def generate(outdir='output',
-             indirs='content,content2',
-             statics='static,static2',
-             includes='include,include2',
-             models='models.py',
-):
-    load_models(models)
-    force(lambda:os.mkdir(outdir))
-    xwalkN(statics, outdir, copy_file)
-    xwalkN(indirs,  outdir, gen_file, good)
-    includes = includes.split(',')
-    pass
-
+####
 def parse_args():
     import argparse
     parser = argparse.ArgumentParser()
+    parser.add_argument('-m','--models', dest='models',   default='models.py',
+                        help='directory for source input')
     parser.add_argument('-i','--input',  dest='inputdir', default='content',
                         help='directory for source input')
     parser.add_argument('-o','--output', dest='outputdir',default='output',
                         help='directory for generated output')
+    parser.add_argument('-s','--static', dest='staticdir',default='static',
+                        help='directory for static input')
     parser.add_argument('-r','--recurse',action='store_true',
                         help='whether to recurse')
     parser.add_argument('-v','--verbose',action='store_true',
                         help='increase output verbosity')
     return parser.parse_args()
 
-if __name__=='__main__':options=parse_args();generate()
+options=parse_args()
+
+def generate(outdir=options.outputdir,
+             indirs=options.inputdir,
+             statics=options.staticdir,
+             models=options.models):
+    load_models(models)
+    force(lambda:os.mkdir(outdir))
+    xwalkN(statics, outdir, copy_file)
+    xwalkN(indirs,  outdir, gen_file, good)
+    pass
+
+if __name__=='__main__':generate()
