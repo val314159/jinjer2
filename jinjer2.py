@@ -17,7 +17,9 @@ Ever want to just apply a model to a bunch of files?  Now you can!
   >>> jinjer2.generate()
 ```
 """
-import os, sys, json, jinja2
+__version__='0.1.1'
+__author__='Joel Ward'
+import os, sys, json
 ##
 class untrue(object):
     """
@@ -142,16 +144,13 @@ def parse_args():
                         help='increase output verbosity')
     return parser.parse_args()
 
-options=parse_args()
-
-def generate(outdir=options.outputdir,
-             indirs=options.inputdir,
-             statics=options.staticdir,
-             models=options.models):
-    load_models(models)
-    force(lambda:os.mkdir(outdir))
-    xwalkN(statics, outdir, copy_file)
-    xwalkN(indirs,  outdir, gen_file, good)
+def main():
+    global options
+    options=parse_args()
+    load_models(options.models)
+    force(lambda:os.mkdir(options.outputdir))
+    xwalkN(options.staticdir, options.outputdir,copy_file)
+    xwalkN(options.inputdir,  options.outputdir, gen_file, good)
     pass
 
-if __name__=='__main__':generate()
+if __name__=='__main__': main()
