@@ -89,41 +89,58 @@ def xwalk1(src_dir, dst_dir, func, good=good):
         pass
     pass
 
-def xwalkN(src_dirs, dst_dir, func, good=good):
+def xwalkN(src_dirs, *a, **kw):
     for src_dir in src_dirs.split(','):
-        xwalk1(src_dir, dst_dir, func, good)
+        xwalk1(src_dir, *a, **kw)
     pass
-
 ##
-def load_models(modname):
-    if verbose: print ">> import models ( __import__('%s') )" % modname
-    return dict((k,v) for k,v
-                in __import__(modname).__dict__.iteritems()
-                if not k.startswith('__'))
+def copy_file(fullname,fulloutput,models):
+    if verbose: print ">> CF", fullname
+    force(lambda:os.unlink(fulloutput))
+    return os.link(fullname,fulloutput)
 
-def gen_file(fullname,fulloutput,models=load_models('models')):
+models = {}
+
+def yload_models(filename):
+    global models
+    import yaml
+    models=yaml.load(load(filename))
+    return models
+
+def pload_models(filename):
+    global models
+    globals={}
+    execfile(filename,globals)
+    models = dict((k,v) for k,v in globals.iteritems()
+                  if not k.startswith('__'))
+    return models
+
+def load_models(filename):
+    return(pload_models(filename)
+           if filename.endswith('.py') else
+           yload_models(filename))
+
+def gen_file(fullname,fulloutput):
     if verbose: print ">> GF", fullname,'|'
     contents=load(fullname)
     output = objt(fname=fullname,
                   models=models,
                   contents=contents,
-    )._render()
+                  )._render()
     if verbose: print output,'\n<<','-'*60
     force(lambda:os.unlink(fulloutput))
     return dump(fulloutput,output)
-
-def copy_file(fullname,fulloutput,models=load_models('models')):
-    if verbose: print ">> CF", fullname
-    force(lambda:os.unlink(fulloutput))
-    return os.link(fullname,fulloutput)
 
 def generate(outdir='output',
              indirs='content,content2',
              statics='static,static2',
              includes='include,include2',
+             models='models.py',
 ):
-    xwalkN(indirs,  outdir, gen_file)
+    load_models(models)
+    force(lambda:os.mkdir(outdir))
     xwalkN(statics, outdir, copy_file)
+    xwalkN(indirs,  outdir, gen_file, good)
     includes = includes.split(',')
     pass
 
