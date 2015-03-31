@@ -88,7 +88,7 @@ def xwalkN(src_dirs, *a, **kw):
         xwalk1(src_dir, *a, **kw)
     pass
 ##
-def copy_file(fullname,fulloutput,models):
+def copy_file(fullname,fulloutput):
     if options.verbose: print ">> CF", fullname
     force(lambda:os.unlink(fulloutput))
     return os.link(fullname,fulloutput)
