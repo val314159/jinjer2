@@ -57,7 +57,13 @@ class obj(object):
     def __str__ (_):return str(_._keys())
     pass
 class objt(obj):
-    def _template(_): import jinja2; return jinja2.Template(_.contents)
+    def _get_env(self,_=[]):
+        if not _:
+            from jinja2 import Environment
+            from jinja2.loaders import FileSystemLoader as FSL
+            _.append( Environment( loader=FSL(options.tmpldir) ) )
+        return _[0]
+    def _template(_): return _._get_env().from_string(_.contents)
     def _render(_):   return _._template().render(**_.models)
     pass
 ##
@@ -134,6 +140,8 @@ def parse_args():
                         help='directory for source input')
     parser.add_argument('-i','--input',  dest='inputdir', default='content',
                         help='directory for source input')
+    parser.add_argument('-t','--tmpldir', dest='tmpldir', default='tmpl',
+                        help='directory for templates')
     parser.add_argument('-o','--output', dest='outputdir',default='output',
                         help='directory for generated output')
     parser.add_argument('-s','--static', dest='staticdir',default='static',
