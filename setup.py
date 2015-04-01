@@ -16,8 +16,7 @@ setup(
     version = jinjer2.__version__,
     py_modules=['jinjer2'],
     entry_points = dict(
-        console_scripts=['jinjer2=jinjer2:main'],
-        console_scripts=['jj2=jinjer2:main'],
+        console_scripts=['jinjer2=jinjer2:main','jj2=jinjer2:main'],
     ),
     install_requires = ['Jinja2>=2.7.3',
                         'pyaml>=15.3.1',
