@@ -158,11 +158,9 @@ def parse_args():
 def main():
     global options
     options=parse_args()
-    if models: load_models(options.models)
+    if options.models: load_models(options.models)
     options.isinputdir=os.path.isdir(options.inputdir)
-    if options.isinputdir:
-        force(lambda:os.mkdir(options.outputdir))
-        pass
+    if options.isinputdir: force(lambda:os.mkdir(options.outputdir))
     xwalkN(options.staticdir, options.outputdir,copy_file)
     xwalkN(options.inputdir,  options.outputdir, gen_file, good)
     pass
