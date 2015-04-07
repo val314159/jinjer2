@@ -17,7 +17,7 @@ Ever want to just apply a model to a bunch of files?  Now you can!
   >>> jinjer2.generate()
 ```
 """
-__version__='0.1.2'
+__version__='0.1.3'
 __author__='Joel Ward'
 import os, sys, json
 ##
@@ -136,8 +136,8 @@ def gen_file(fullname,fulloutput):
 def parse_args():
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('-m','--models', dest='models',   default='models.py',
-                        help='directory for source input')
+    parser.add_argument('-m','--models', dest='models',
+                        help='directory for input models')
     parser.add_argument('-i','--input',  dest='inputdir', default='content',
                         help='directory for source input')
     parser.add_argument('-t','--tmpldir', dest='tmpldir', default='tmpl',
@@ -146,17 +146,19 @@ def parse_args():
                         help='directory for generated output')
     parser.add_argument('-s','--static', dest='staticdir',default='static',
                         help='directory for static input')
-    parser.add_argument('-r','--recurse',action='store_true',
+    parser.add_argument('-r','--recurse',action='store_true',dest='recurse',
                         help='whether to recurse')
-    parser.add_argument('-v','--verbose',action='store_true',
+    parser.add_argument('-F','--filter',action='store_true',dest='filter',
+                        help='whether to be a file filter')
+    parser.add_argument('-v','--verbose',action='store_true',dest='verbose',
                         help='increase output verbosity')
     return parser.parse_args()
 
 def main():
     global options
     options=parse_args()
-    load_models(options.models)
-    force(lambda:os.mkdir(options.outputdir))
+    if models: load_models(options.models)
+    if not options.filter: force(lambda:os.mkdir(options.outputdir))
     xwalkN(options.staticdir, options.outputdir,copy_file)
     xwalkN(options.inputdir,  options.outputdir, gen_file, good)
     pass
