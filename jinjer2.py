@@ -61,7 +61,10 @@ class objt(obj):
         if not _:
             from jinja2 import Environment
             from jinja2.loaders import FileSystemLoader as FSL
-            _.append( Environment( loader=FSL(options.tmpldir) ) )
+            _.append( Environment( loader=FSL(options.tmpldir),
+                                   line_statement_prefix='%%',
+                                   line_comment_prefix='%#',
+                               ) )
         return _[0]
     def _template(_): return _._get_env().from_string(_.contents)
     def _render(_):   return _._template().render(**_.models)
