@@ -148,8 +148,6 @@ def parse_args():
                         help='directory for static input')
     parser.add_argument('-r','--recurse',action='store_true',dest='recurse',
                         help='whether to recurse')
-    parser.add_argument('-F','--filter',action='store_true',dest='filter',
-                        help='whether to be a file filter')
     parser.add_argument('-v','--verbose',action='store_true',dest='verbose',
                         help='increase output verbosity')
     return parser.parse_args()
@@ -158,7 +156,10 @@ def main():
     global options
     options=parse_args()
     if models: load_models(options.models)
-    if not options.filter: force(lambda:os.mkdir(options.outputdir))
+    options.isinputdir=os.path.isdir(options.inputdir)
+    if options.isinputdir:
+        force(lambda:os.mkdir(options.outputdir))
+        pass
     xwalkN(options.staticdir, options.outputdir,copy_file)
     xwalkN(options.inputdir,  options.outputdir, gen_file, good)
     pass
