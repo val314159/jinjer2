@@ -1,0 +1,6 @@
+
+{% macro test1() %}
+TEST1 START
+{{ caller() }}
+TEST1 FINISH
+{% endmacro %}

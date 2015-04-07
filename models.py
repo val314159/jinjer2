@@ -12,5 +12,6 @@ toplevel namespace.
 
 # put the "real" model in a seperate namespace
 # so the global injection doesnt mess it all up.
-M = model = {} 
-
+M = model = {
+    "message": "I am a message"
+}

@@ -17,7 +17,7 @@ Ever want to just apply a model to a bunch of files?  Now you can!
   >>> jinjer2.generate()
 ```
 """
-__version__='0.1.3'
+__version__='0.1.4'
 __author__='Joel Ward'
 import os, sys, json
 ##
