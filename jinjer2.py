@@ -8,7 +8,7 @@ Ever want to just apply a model to a bunch of files?  Now you can!
 
 ```sh
   # command line usage
-  jinger2
+  jinjer2
 ```
 
 ```python
