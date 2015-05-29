@@ -5,11 +5,12 @@ jj2 - Jinjer2 Static Macro File Generator (cmd line generator using jinja2)
   Ever want to just apply a model to a bunch of files?  Now you can!
 
 Usage:
-  jj2 [-m <model>] [-i <inputdir>] [-t <tmpldir>] [-s <staticdir>] [-o <outputdir>]
+  jj2 [-V] [-m <model>] [-i <inputdir>] [-t <tmpldir>] [-s <staticdir>] [-o <outputdir>]
   jj2 (-h | --help | -v | --version)
 
 Options:
- -m <model>      Model(s) file      [default: models.yaml]
+ -m <model>      Model(s) file
+ -V              Verbose
  -i <inputdir>   Input directory    [default: content]
  -t <tmpldir>    Template directory [default: tmpl]
  -s <staticdir>  Static directory   [default: static]
@@ -60,7 +61,7 @@ class objt(obj):
         if not _:
             from jinja2 import Environment
             from jinja2.loaders import FileSystemLoader as FSL
-            _.append( Environment( loader=FSL(options.tmpldir),
+            _.append( Environment( loader=FSL(options['t']),
                                    line_statement_prefix='%%',
                                    line_comment_prefix='%#',
                                ) )
@@ -80,7 +81,7 @@ def xwalk1(src_dir, dst_dir, func, good=good):
         prefix = orig_prefix[len(src_dir)+1:]
         for dname in dirs:
             out_name = os.path.join( dst_dir, prefix, dname )
-            if options.verbose: print ">> mkdir", out_name
+            if options['V']: print ">> mkdir", out_name
             force( lambda: os.makedirs(out_name) )
             pass
         for fname in files:
@@ -99,7 +100,7 @@ def xwalkN(src_dirs, *a, **kw):
     pass
 ##
 def copy_file(fullname,fulloutput):
-    if options.verbose: print ">> CF", fullname
+    if options['V']: print ">> CF", fullname
     force(lambda:os.unlink(fulloutput))
     return os.link(fullname,fulloutput)
 
@@ -125,23 +126,24 @@ def load_models(filename):
            yload_models(filename))
 
 def gen_file(fullname,fulloutput):
-    if options.verbose: print ">> GF", fullname,'|'
+    if options['V']: print ">> GF", fullname,'|'
     contents=load(fullname)
     output = objt(fname=fullname,
                   models=models,
                   contents=contents,
                   )._render()
-    if options.verbose: print output,'\n<<','-'*60
+    if options['V']: print output,'\n<<','-'*60
     force(lambda:os.unlink(fulloutput))
     return dump(fulloutput,output)
 ####
 def main():
     options = docopt.docopt(__doc__,version=__version__)
     print "OPTIONS", options
-    if options.models: load_models(options.models)
-    options.isinputdir=os.path.isdir(options.inputdir)
-    if options.isinputdir: force(lambda:os.mkdir(options.outputdir))
-    xwalkN(options.staticdir, options.outputdir,copy_file)
-    xwalkN(options.inputdir,  options.outputdir, gen_file, good)
+    if options['m']: load_models(options['m'])
+    if os.path.isdir(options['i']):
+        force(lambda:os.mkdir(options['o']))
+        pass
+    xwalkN(options['s'], options['o'],copy_file)
+    xwalkN(options['i'], options['o'], gen_file, good)
     pass
 if __name__=='__main__': main()
