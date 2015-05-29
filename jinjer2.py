@@ -1,25 +1,24 @@
 #!/usr/bin/env python
 """
-Static Macro File Generator (cmd line generator using jinja2)
+jj2 - Jinjer2 Static Macro File Generator (cmd line generator using jinja2)
 
-Ever want to just apply a model to a bunch of files?  Now you can!
+  Ever want to just apply a model to a bunch of files?  Now you can!
 
-### Usage:
+Usage:
+  jj2 [-m <model>] [-i <inputdir>] [-t <tmpldir>] [-s <staticdir>] [-o <outputdir>]
+  jj2 (-h | --help | -v | --version)
 
-```sh
-  # command line usage
-  jinjer2
-```
+Options:
+ -m <model>      Model(s) file      [default: models.yaml]
+ -i <inputdir>   Input directory    [default: content]
+ -t <tmpldir>    Template directory [default: tmpl]
+ -s <staticdir>  Static directory   [default: static]
+ -o <outputdir>  Output directory   [default: output]
 
-```python
-  # python usage
-  >>> import jinger2
-  >>> jinjer2.generate()
-```
 """
 __version__='0.1.4'
 __author__='Joel Ward'
-import os, sys, json
+import os, sys, json, docopt
 ##
 class untrue(object):
     """
@@ -136,33 +135,13 @@ def gen_file(fullname,fulloutput):
     force(lambda:os.unlink(fulloutput))
     return dump(fulloutput,output)
 ####
-def parse_args():
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-m','--models', dest='models',
-                        help='directory for input models')
-    parser.add_argument('-i','--input',  dest='inputdir', default='content',
-                        help='directory for source input')
-    parser.add_argument('-t','--tmpldir', dest='tmpldir', default='tmpl',
-                        help='directory for templates')
-    parser.add_argument('-o','--output', dest='outputdir',default='output',
-                        help='directory for generated output')
-    parser.add_argument('-s','--static', dest='staticdir',default='static',
-                        help='directory for static input')
-    parser.add_argument('-r','--recurse',action='store_true',dest='recurse',
-                        help='whether to recurse')
-    parser.add_argument('-v','--verbose',action='store_true',dest='verbose',
-                        help='increase output verbosity')
-    return parser.parse_args()
-
 def main():
-    global options
-    options=parse_args()
+    options = docopt.docopt(__doc__,version=__version__)
+    print "OPTIONS", options
     if options.models: load_models(options.models)
     options.isinputdir=os.path.isdir(options.inputdir)
     if options.isinputdir: force(lambda:os.mkdir(options.outputdir))
     xwalkN(options.staticdir, options.outputdir,copy_file)
     xwalkN(options.inputdir,  options.outputdir, gen_file, good)
     pass
-
 if __name__=='__main__': main()
